@@ -36,6 +36,7 @@ public class Startup : FunctionsStartup
     public void ConfigureServices(IServiceCollection services)
     {
         services.Configure<ConnectionSettings>(_configuration.GetSection("Database"));
+        services.Configure<ActiveDirectorySettings>(_configuration.GetSection("ActiveDirectory"));
         services.AddDbContext<PersistenceContext>((sp, options) =>
         {
             var database = sp
@@ -64,15 +65,15 @@ public class Startup : FunctionsStartup
             app.UseSwaggerUI();
         }
 
+        app.UseMiddleware<ActiveDirectoryMiddleware>();
         app.UseRouting();
         app.UseEndpoints(endpoint =>
         {
+            endpoint.MapControllers();
+            endpoint.MapHealthChecks("health-check");
             endpoint
                 .MapGet("/", () => "hello world")
                 .WithOpenApi();
-
-            endpoint.MapHealthChecks("health-check");
-            endpoint.MapControllers();
         });
     }
 }
